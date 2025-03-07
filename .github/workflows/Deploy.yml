@@ -1,5 +1,5 @@
 # Workflow: 하나의 yml 파일을 하나의 Workflow 라고 부른다.
-name: TeamDia-Admin to EC2
+name: TeamDia_Admin to EC2
 on:
   push:
     branches:
