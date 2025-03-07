@@ -1,0 +1,26 @@
+# Workflow: 하나의 yml 파일을 하나의 Workflow 라고 부른다.
+name: TeamDia_Admin to EC2
+on:
+  push:
+    branches:
+      - Main   # main 브랜치에 push 될 때 아래 Workflow 를 실행한다.
+
+jobs:
+  deploy:   # 이 이름은 바뀔 수 있다.
+    runs-on: ubuntu-latest     # Github Actions 를 실행시킬 서버 종류 선택
+    steps:
+      - name: SSH로 EC2에 접속    # Step 에 이름을 붙이는 기능 (하나의 이름으로 여러개의 명령을 넣을 수도 있다)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}  # EC2 의 주소 ==> 인스턴스 할당 IP 주소
+          username: ${{ secrets.EC2_USERNAME }}   # EC2 접속 username ==> ubuntu
+          key:  ${{ secrets.EC2_PRIVATE_KEY }} # EC2의 접속을 위한 Key 파일의 내용  ==> 키페어를 메모장으로 열어서 입력
+          
+          script_stop: true  # 아래 script 중 실패하는 명령이 하나라도 있으면 실패로 처리
+
+          script: |
+            cd /home/ubuntu/TeamDia-Admin
+            git pull origin Main
+            npm install
+            npm run build
+            sudo systemctl restart nginx
