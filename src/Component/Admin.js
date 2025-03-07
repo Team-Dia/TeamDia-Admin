@@ -87,7 +87,7 @@ const Admin = () => {
     <div className="admin-login-page">
       <form className="AdminForm" onSubmit={handleSubmit}>
         <div className="login-header">
-          <h2>Admin Login</h2>
+          <h2>11Admin Login11</h2>
           <p className="login-subtitle">Welcome to Admin Dashboard</p>
         </div>
         <div className="login-body">
