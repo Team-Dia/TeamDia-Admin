@@ -104,6 +104,10 @@ const WriteProduct = () => {
     const file = event.target.files[0];
     if (!file) return;
 
+    console.log("업로드 요청 필드:", fieldName);
+    console.log("업로드 요청 파일명:", file.name);
+    console.log("업로드 요청 폴더:", folderMapping[fieldName]);
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -111,7 +115,7 @@ const WriteProduct = () => {
       const response = await jaxios.post(`/api/upload/${folderMapping[fieldName]}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
+      console.log("📡 업로드된 이미지 URL:", response.data); // ✅ 로그 추가
       const fileUrl = response.data;
       
       setUploadedImages((prev) => ({
@@ -343,17 +347,11 @@ const WriteProduct = () => {
           </div>
 
           {/* ✅ 이미지 업로드 UI (파일 선택만 하면 자동 업로드) */}
-          {Object.keys(folderMapping).map((field, index) => (
-            <div key={field} className="image-upload-group">
-              <label><strong>상품 이미지{index + 1}</strong></label>
-              {/* ✅ 이미지 미리보기 */}
-              {uploadedImages[field] ? (
-                <img src={uploadedImages[field]} alt={`미리보기 ${field}`} width="250" />
-              ) : (
-                <div className="image-placeholder">이미지 미리보기 없음</div>
-              )}
-              {/* ✅ 파일 선택 필드 (버튼 없음, 선택하면 자동 업로드) */}
-              <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, field)} />
+          {Object.entries(folderMapping).map(([field, folder]) => (
+            <div className="form-group" key={field}>
+              <label>{folder === 'product_images' ? '상품 이미지' : folder === 'product_infoimages' ? '상세 정보 이미지' : 'Hover 이미지'}</label>
+              <input type="file" onChange={(e) => handleFileChange(e, field)} />
+              {product[field] && <img src={product[field]} alt="미리보기" width="200" />}
             </div>
           ))}
 
