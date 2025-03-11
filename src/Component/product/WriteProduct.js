@@ -136,8 +136,8 @@ const WriteProduct = () => {
     formData.append("file", file);
 
     try {
-        console.log("📡 파일 업로드 요청 시작:", `/api/admin/product/upload/${folderMapping[fieldName]}`);
-        const response = await jaxios.post(`/api/admin/product/upload/${folderMapping[fieldName]}`, formData, {
+        console.log("📡 파일 업로드 요청 - 필드명:", fieldName);
+        const response = await jaxios.post(`/api/upload/${fieldName}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         
