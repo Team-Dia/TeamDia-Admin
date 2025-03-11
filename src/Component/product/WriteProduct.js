@@ -16,6 +16,14 @@ const WriteProduct = () => {
     { id: 4, name: '팔찌' },
   ]
 
+  // ✅ 로컬과 S3 자동 변환 함수
+  const getImageUrl = (imagePath, fieldName) => {
+    if (!imagePath || imagePath === "null") return "/default-image.png";
+    if (imagePath.startsWith("http")) return imagePath; // S3 URL이면 그대로 반환
+
+    return `/static/${folderMapping[fieldName]}/${imagePath}`;
+  };
+
   const [product, setProduct] = useState({
     categoryId: '',
     productName: '',
@@ -116,30 +124,32 @@ const WriteProduct = () => {
       infoImage5: "product_infoimages",
       hoverImage: "product_hover",
     };
-    const folder = folderMapping[fieldName];
+    // const folder = folderMapping[fieldName];
 
-    console.log("업로드 요청 필드:", fieldName);
-    console.log("업로드 요청 파일명:", file.name);
-    console.log("업로드 요청 폴더:", folderMapping[fieldName]);
+    // console.log("업로드 요청 필드:", fieldName);
+    // console.log("업로드 요청 파일명:", file.name);
+    // console.log("업로드 요청 폴더:", folderMapping[fieldName]);
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const response = await jaxios.post(`/api/admin/product/upload/${folder}`, formData, {
+      const response = await jaxios.post(`/api/admin/product/upload/${folderMapping[fieldName]}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       console.log("📡 업로드된 이미지 URL:", response.data.imageUrl); // ✅ 로그 추가
-      const fileUrl = response.data;
+      // ✅ S3 환경에서는 imageUrl 사용, 로컬 환경에서는 파일명 그대로 저장
+      const fileUrl = response.data.imageUrl || `/static/${folderMapping[fieldName]}/${response.data}`;
       
       setUploadedImages((prev) => ({
         ...prev,
-        [fieldName]:  response.data.imageUrl, // ✅ 해당 필드에 업로드된 S3 URL 저장
+        [fieldName]: fileUrl,
       }));
 
       setProduct((prev) => ({
         ...prev,
-        [fieldName]: response.data.imageUrl, // ✅ product 상태에도 저장
+        [fieldName]: fileUrl,
       }));
     } catch (error) {
       console.error("파일 업로드 실패", error);
@@ -360,12 +370,12 @@ const WriteProduct = () => {
             ></textarea>
           </div>
 
-          {/* ✅ 이미지 업로드 UI (파일 선택만 하면 자동 업로드) */}
-          {Object.entries(folderMapping).map(([field, folder], index) => (
+           {/* ✅ 이미지 업로드 UI (파일 선택만 하면 자동 업로드) */}
+           {Object.entries(folderMapping).map(([field, folder], index) => (
             <div className="form-group" key={field}>
-              <label>{folder === 'product_images' ? `상품 이미지 ${index + 1}` : folder === 'product_infoimages' ? `상세 정보 이미지 ${index - 3}` : 'Hover 이미지'}</label>
+              <label>{folder.includes('product_images') ? `상품 이미지 ${index + 1}` : folder.includes('product_infoimages') ? `상세 정보 이미지 ${index - 3}` : 'Hover 이미지'}</label>
               <input type="file" onChange={(e) => handleFileChange(e, field)} />
-              {product[field] && <img src={product[field]} alt={`미리보기 ${index + 1}`} width="200" />}
+              {product[field] && <img src={getImageUrl(product[field], field)} alt={`미리보기 ${index + 1}`} width="200" />}
             </div>
           ))}
 
