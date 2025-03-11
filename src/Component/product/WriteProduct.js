@@ -129,11 +129,17 @@ const WriteProduct = () => {
     formData.append("file", file);
 
     try {
+        console.log("📡 파일 업로드 요청 시작:", `/api/admin/product/upload/${folderMapping[fieldName]}`);
         const response = await jaxios.post(`/api/admin/product/upload/${folderMapping[fieldName]}`, formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
-
+        console.log("📡 서버 응답 전체:", response); // ✅ 서버 응답 전체 출력
         let fileUrl;
+
+        // ✅ 응답 데이터가 존재하는지 확인
+        if (!response || !response.data) {
+          throw new Error("🚨 서버 응답이 없습니다.");
+        }
 
         // ✅ 서버 응답이 JSON 객체({ imageUrl: "URL" })일 경우
         if (response.data && typeof response.data === "object" && response.data.imageUrl) {
@@ -145,6 +151,7 @@ const WriteProduct = () => {
         }
         // ✅ 서버 응답이 예상과 다를 경우 오류 발생 (디버깅)
         else {
+            console.error("🚨 서버 응답이 예상과 다름:", response.data);
             throw new Error("서버 응답이 예상과 다릅니다.");
         }
 
