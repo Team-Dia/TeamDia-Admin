@@ -117,35 +117,52 @@ const UpdateProduct = () => {
     const file = event.target.files[0];
     if (!file) return;
 
+    const folderMapping = {
+        productImage: "product_images",
+        productImage2: "product_images",
+        productImage3: "product_images",
+        productImage4: "product_images",
+        infoImage: "product_infoimages",
+        infoImage2: "product_infoimages",
+        infoImage3: "product_infoimages",
+        infoImage4: "product_infoimages",
+        infoImage5: "product_infoimages",
+        hoverImage: "product_hover",
+    };
+
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const response = await jaxios.post(`/api/admin/product/upload/${folderMapping[fieldName]}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+        const response = await jaxios.post(`/api/admin/product/upload/${folderMapping[fieldName]}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
 
-      // ✅ S3 환경에서는 imageUrl 사용, 로컬 환경에서는 파일명 그대로 저장
-      const fileUrl = response.data.imageUrl || `/static/${folderMapping[fieldName]}/${response.data}`;
-      
-      setUploadedImages((prev) => ({
-        ...prev,
-        [fieldName]: fileUrl,
-      }));
+        let fileUrl;
 
-      // setProduct((prev) => ({
-      //   ...prev,
-      //   [fieldName]: fileUrl,
-      // }));
-      // setUploadedImages((prev) => ({ ...prev, [fieldName]: fileUrl }));
-      // setProduct((prev) => ({ ...prev, [fieldName]: fileUrl }));
+        // ✅ 서버 응답이 JSON 객체({ imageUrl: "URL" })일 경우
+        if (response.data && typeof response.data === "object" && response.data.imageUrl) {
+            fileUrl = response.data.imageUrl;
+        }
+        // ✅ 서버 응답이 문자열(S3 URL 또는 로컬 경로)일 경우
+        else if (typeof response.data === "string") {
+            fileUrl = `/static/${folderMapping[fieldName]}/${response.data}`;
+        }
+        // ✅ 서버 응답이 예상과 다를 경우 오류 발생 (디버깅)
+        else {
+            throw new Error("서버 응답이 예상과 다릅니다.");
+        }
 
-      // 기존 이미지(product) 상태는 유지하고, 신규 업로드된 이미지만 반영
-      // setUploadedImages((prev) => ({ ...prev, [fieldName]: fileUrl }));
+        console.log("📡 업로드된 이미지 URL:", fileUrl); // ✅ 로그 추가
+
+        setUploadedImages((prev) => ({
+            ...prev,
+            [fieldName]: fileUrl,
+        }));
 
     } catch (error) {
-      console.error("파일 업로드 실패", error);
-      alert("파일 업로드에 실패했습니다.");
+        console.error("파일 업로드 실패", error);
+        alert("파일 업로드에 실패했습니다.");
     }
   };
 
