@@ -139,6 +139,10 @@ const UpdateProduct = () => {
         });
 
         let fileUrl;
+        // ✅ 응답 데이터가 존재하는지 확인
+        if (!response || !response.data) {
+          throw new Error("🚨 서버 응답이 없습니다.");
+        }
 
         // ✅ 서버 응답이 JSON 객체({ imageUrl: "URL" })일 경우
         if (response.data && typeof response.data === "object" && response.data.imageUrl) {
