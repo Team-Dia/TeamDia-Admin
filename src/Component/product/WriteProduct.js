@@ -135,7 +135,6 @@ const WriteProduct = () => {
         const response = await jaxios.post(`/api/admin/product/upload/${folderMapping[fieldName]}`, formData, {
           headers: { 
             "Content-Type": "multipart/form-data",
-            "Authorization": token ? `Bearer ${token}` : "", // ✅ 토큰이 있을 경우 포함
          },
         });
         console.log("✅ 상품 이미지 URL 확인:", getImageUrl(product.productImage, "productImage"));
