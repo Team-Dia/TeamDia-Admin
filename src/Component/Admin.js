@@ -28,54 +28,37 @@ const Admin = () => {
     console.log(pwd)
 
     axios
-      .post(
-        '/api/member/loginLocal',null,
-        {
-           params:{
-            username: userid,
-            password: pwd,
-          }, withCredentials: true
-        },
-      )
-      .then((response) => {
-        console.log(response.data);
-        if ( response.data) {
-          // document.cookie = `adminUser=${JSON.stringify(response.data.loginUser)}; path=/;`
-          
-          let loginUser = {
-            memberId: response.data.memberId,
-            memberName: response.data.memberName,
-            memberEmail: response.data.memberEmail,
-            memberPhone: response.data.memberPhone,
-            memberAddress1: response.data.memberAddress1,
-            memberAddress2: response.data.memberAddress2,
-            memberAddress3: response.data.memberAddress3,
-            roleNames: response.data.roleNames,
-            // 추가적으로 필요한 값들
-            accessToken: response.data.accessToken, // 응답에서 받은 accessToken
-            refreshToken: response.data.refreshToken // 응답에서 받은 refreshToken
-          };
-          dispatch(loginAction(loginUser));
-          cookies.set("loginUser", {
-            ...loginUser,
-            accessToken: response.data.accessToken, // 토큰을 쿠키에 저장
-            refreshToken: response.data.refreshToken  // refreshToken도 저장
-          }, { path: "/" });
-          navigate('/productList')
-        } 
-      })
-      .catch((error) => {
-        let errorMessage = 'Error during login'
-        if (error.response) {
-          errorMessage =
-            error.response.status === 401
-              ? 'Invalid ID or password'
-              : `Server error (${error.response.status}) - ${error.response.data}`
-        } else if (error.request) {
-          errorMessage = 'Login failed: Network error'
-        }
-        alert(`Login failed: ${errorMessage}`)
-      })
+  .post(
+    '/admin/loginAdmin',  // ✅ 백엔드 경로 수정
+    { adminId: userid, adminPwd: pwd }, // ✅ 필드명 수정
+    { withCredentials: true }
+  )
+  .then((response) => {
+    console.log("로그인 응답 데이터:", response.data);
+
+    if (response.data && response.data.accessToken && response.data.refreshToken) {
+      let loginUser = {
+        adminId: response.data.loginAdmin.adminId,
+        adminName: response.data.loginAdmin.adminName,
+        accessToken: response.data.accessToken, 
+        refreshToken: response.data.refreshToken
+      };
+
+      dispatch(loginAction(loginUser));
+      cookies.set("loginUser", loginUser, { path: "/" });
+
+      console.log("로그인 성공! 쿠키 저장:", cookies.get("loginUser"));
+
+      navigate('/productList');
+    } else {
+      console.error("로그인 응답에서 JWT가 누락됨", response.data);
+      alert("로그인 실패: 서버에서 토큰을 받지 못했습니다.");
+    }
+  })
+  .catch((error) => {
+    console.error("로그인 요청 실패:", error);
+    alert("로그인 실패: 네트워크 오류");
+  });
   }, [userid, pwd, navigate])
 
   const handleSubmit = (event) => {

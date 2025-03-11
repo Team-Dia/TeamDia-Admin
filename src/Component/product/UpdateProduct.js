@@ -108,99 +108,18 @@ const UpdateProduct = () => {
 
   // ✅ 입력 필드 변경 핸들러
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setProduct((prevProduct) => ({
-      ...prevProduct,
-      [name]: value,
-      productMarginPrice: (name === 'productCostPrice' || name === 'productSalePrice') 
-        ? calculateMarginPrice(name === 'productCostPrice' ? value : prevProduct.productCostPrice, 
-                               name === 'productSalePrice' ? value : prevProduct.productSalePrice)
-        : prevProduct.productMarginPrice,
-    }));
-  };
-  
-  // ✅ 파일 업로드 핸들러 (S3 & 로컬 자동 대응)
-  const handleFileChange = async (event, fieldName) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const folderMapping = {
-        productImage: "product_images",
-        productImage2: "product_images",
-        productImage3: "product_images",
-        productImage4: "product_images",
-        infoImage: "product_infoimages",
-        infoImage2: "product_infoimages",
-        infoImage3: "product_infoimages",
-        infoImage4: "product_infoimages",
-        infoImage5: "product_infoimages",
-        hoverImage: "product_hover",
-    };
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-        console.log("📡 파일 업로드 요청 시작:", `/api/admin/product/upload/${folderMapping[fieldName]}`);
-        const response = await jaxios.post(`/api/admin/product/upload/${fieldName}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        
-        let fileUrl;
-
-        // ✅ 응답 데이터가 존재하는지 확인
-        if (!response || !response.data) {
-          throw new Error("🚨 서버 응답이 없습니다.");
-        }
-
-        // ✅ 서버 응답이 문자열(S3 URL)일 경우 → 그대로 사용
-        if (typeof response.data === "string") {
-            fileUrl = response.data;
-        } 
-        // ✅ 서버 응답이 JSON 객체({ imageUrl: "URL" })일 경우
-        else if (response.data && typeof response.data === "object" && response.data.imageUrl) {
-            fileUrl = response.data.imageUrl;
-        } 
-        // ✅ 서버 응답이 예상과 다를 경우 오류 발생 (디버깅)
-        else {
-            console.error("🚨 서버 응답이 예상과 다름:", response.data);
-            throw new Error("서버 응답이 예상과 다릅니다.");
-        }
-
-        // ✅ 상태 업데이트 (업로드된 이미지 URL 저장)
-        setUploadedImages((prev) => ({
-            ...prev,
-            [fieldName]: fileUrl,
-        }));
-
-        setProduct((prev) => ({
-            ...prev,
-            [fieldName]: fileUrl,
-        }));
-
-      console.log("✅ 업로드 완료 - 저장된 URL:", fileUrl);
-    } catch (error) {
-        console.error("파일 업로드 실패", error);
-        alert("파일 업로드에 실패했습니다.");
-    }
-  };
-
-  
-  
-  // ✅ S3 업로드 후 실행되는 함수
-  const handleUploadSuccess = (fieldName, fileUrl) => {
-    setUploadedImages((prev) => ({
-      ...prev,
-      [fieldName]: fileUrl, 
-    }));
-
-    setProduct((prev) => ({
-      ...prev,
-      [fieldName]: fileUrl, 
-    }));
-  };
-  
-  // 라디오 버튼 변경 처리
+    const { name, value } = e.target
+    setProduct((prev) => {
+      const updated = { ...prev, [name]: value }
+      if (name === 'productCostPrice' || name === 'productSalePrice') {
+        updated.productMarginPrice = calculateMarginPrice(
+          name === 'productCostPrice' ? value : prev.productCostPrice,
+          name === 'productSalePrice' ? value : prev.productSalePrice,
+        )
+      }
+      return updated
+    })
+  } // 라디오 버튼 변경 처리
   const handleRadioChange = (e) => {
     const { name, value } = e.target
     setProduct((prev) => ({ ...prev, [name]: value }))

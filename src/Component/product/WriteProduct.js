@@ -133,12 +133,16 @@ const WriteProduct = () => {
     try {
         console.log("📡 파일 업로드 요청 시작:", `/api/admin/product/upload/${folderMapping[fieldName]}`);
         const response = await jaxios.post(`/api/admin/product/upload/${folderMapping[fieldName]}`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
+          headers: { 
+            "Content-Type": "multipart/form-data",
+            "Authorization": token ? `Bearer ${token}` : "", // ✅ 토큰이 있을 경우 포함
+         },
         });
         console.log("✅ 상품 이미지 URL 확인:", getImageUrl(product.productImage, "productImage"));
         console.log("✅ 상품 이미지 URL 확인:", getImageUrl(product.infoImage, "infoImage"));
         console.log("📡 서버 응답 전체:", response); // ✅ 서버 응답 전체 출력
         let fileUrl;
+
 
         // ✅ 응답 데이터가 존재하는지 확인
         if (!response || !response.data) {
