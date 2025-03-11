@@ -18,10 +18,15 @@ const WriteProduct = () => {
 
   // ✅ 로컬과 S3 자동 변환 함수
   const getImageUrl = (imagePath, fieldName) => {
-    if (!imagePath || imagePath === "null") return "/default-image.png";
+    if (!imagePath || imagePath === "null") return "/default-image.png"; // 기본 이미지 처리
     if (imagePath.startsWith("http")) return imagePath; // S3 URL이면 그대로 반환
 
-    return `/static/${folderMapping[fieldName]}/${imagePath}`;
+    // ✅ S3 폴더 경로 매핑
+    const folder = folderMapping[fieldName] || "product_images"; // 기본값은 product_images
+    const s3Url = `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${imagePath}`;
+
+    console.log("📡 변환된 이미지 URL:", s3Url); // ✅ 디버깅용 로그 추가
+    return s3Url;
   };
 
   const [product, setProduct] = useState({
