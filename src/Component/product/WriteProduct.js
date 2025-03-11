@@ -137,12 +137,10 @@ const WriteProduct = () => {
 
     try {
         console.log("📡 파일 업로드 요청 시작:", `/api/admin/product/upload/${folderMapping[fieldName]}`);
-        const response = await jaxios.post(`/api/admin/product/upload/${folderMapping[fieldName]}`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
+        const response = await jaxios.post(`/api/admin/product/upload/${fieldName}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
-        console.log("✅ 상품 이미지 URL 확인:", getImageUrl(product.productImage, "productImage"));
-        console.log("✅ 상품 이미지 URL 확인:", getImageUrl(product.infoImage, "infoImage"));
-        console.log("📡 서버 응답 전체:", response); // ✅ 서버 응답 전체 출력
+        
         let fileUrl;
 
         // ✅ 응답 데이터가 존재하는지 확인
@@ -150,22 +148,21 @@ const WriteProduct = () => {
           throw new Error("🚨 서버 응답이 없습니다.");
         }
 
+        // ✅ 서버 응답이 문자열(S3 URL)일 경우 → 그대로 사용
+        if (typeof response.data === "string") {
+            fileUrl = response.data;
+        } 
         // ✅ 서버 응답이 JSON 객체({ imageUrl: "URL" })일 경우
-        if (response.data && typeof response.data === "object" && response.data.imageUrl) {
+        else if (response.data && typeof response.data === "object" && response.data.imageUrl) {
             fileUrl = response.data.imageUrl;
-        }
-        // ✅ 서버 응답이 문자열(S3 URL 또는 로컬 경로)일 경우
-        else if (typeof response.data === "string") {
-            fileUrl = `/static/${folderMapping[fieldName]}/${response.data}`;
-        }
+        } 
         // ✅ 서버 응답이 예상과 다를 경우 오류 발생 (디버깅)
         else {
             console.error("🚨 서버 응답이 예상과 다름:", response.data);
             throw new Error("서버 응답이 예상과 다릅니다.");
         }
 
-        console.log("📡 업로드된 이미지 URL:", fileUrl); // ✅ 로그 추가
-
+        // ✅ 상태 업데이트 (업로드된 이미지 URL 저장)
         setUploadedImages((prev) => ({
             ...prev,
             [fieldName]: fileUrl,
@@ -176,6 +173,7 @@ const WriteProduct = () => {
             [fieldName]: fileUrl,
         }));
 
+      console.log("✅ 업로드 완료 - 저장된 URL:", fileUrl);
     } catch (error) {
         console.error("파일 업로드 실패", error);
         alert("파일 업로드에 실패했습니다.");
