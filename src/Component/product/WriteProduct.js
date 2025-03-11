@@ -104,6 +104,20 @@ const WriteProduct = () => {
     const file = event.target.files[0];
     if (!file) return;
 
+    const folderMapping = {
+      productImage: "product_images",
+      productImage2: "product_images",
+      productImage3: "product_images",
+      productImage4: "product_images",
+      infoImage: "product_infoimages",
+      infoImage2: "product_infoimages",
+      infoImage3: "product_infoimages",
+      infoImage4: "product_infoimages",
+      infoImage5: "product_infoimages",
+      hoverImage: "product_hover",
+    };
+    const folder = folderMapping[fieldName];
+
     console.log("업로드 요청 필드:", fieldName);
     console.log("업로드 요청 파일명:", file.name);
     console.log("업로드 요청 폴더:", folderMapping[fieldName]);
@@ -112,20 +126,20 @@ const WriteProduct = () => {
     formData.append("file", file);
 
     try {
-      const response = await jaxios.post(`/api/upload/${folderMapping[fieldName]}`, formData, {
+      const response = await jaxios.post(`/api/admin/product/upload/${folder}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      console.log("📡 업로드된 이미지 URL:", response.data); // ✅ 로그 추가
+      console.log("📡 업로드된 이미지 URL:", response.data.imageUrl); // ✅ 로그 추가
       const fileUrl = response.data;
       
       setUploadedImages((prev) => ({
         ...prev,
-        [fieldName]: fileUrl, // ✅ 해당 필드에 업로드된 S3 URL 저장
+        [fieldName]:  response.data.imageUrl, // ✅ 해당 필드에 업로드된 S3 URL 저장
       }));
 
       setProduct((prev) => ({
         ...prev,
-        [fieldName]: fileUrl, // ✅ product 상태에도 저장
+        [fieldName]: response.data.imageUrl, // ✅ product 상태에도 저장
       }));
     } catch (error) {
       console.error("파일 업로드 실패", error);
@@ -347,11 +361,11 @@ const WriteProduct = () => {
           </div>
 
           {/* ✅ 이미지 업로드 UI (파일 선택만 하면 자동 업로드) */}
-          {Object.entries(folderMapping).map(([field, folder]) => (
+          {Object.entries(folderMapping).map(([field, folder], index) => (
             <div className="form-group" key={field}>
-              <label>{folder === 'product_images' ? '상품 이미지' : folder === 'product_infoimages' ? '상세 정보 이미지' : 'Hover 이미지'}</label>
+              <label>{folder === 'product_images' ? `상품 이미지 ${index + 1}` : folder === 'product_infoimages' ? `상세 정보 이미지 ${index - 3}` : 'Hover 이미지'}</label>
               <input type="file" onChange={(e) => handleFileChange(e, field)} />
-              {product[field] && <img src={product[field]} alt="미리보기" width="200" />}
+              {product[field] && <img src={product[field]} alt={`미리보기 ${index + 1}`} width="200" />}
             </div>
           ))}
 

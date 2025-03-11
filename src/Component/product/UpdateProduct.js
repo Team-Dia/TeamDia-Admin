@@ -49,11 +49,28 @@ const UpdateProduct = () => {
     hoverImage: "",
   });
 
+  // ✅ 이미지 업로드 폴더 매핑
+  const folderMapping = {
+    productImage: "product_images",
+    productImage2: "product_images",
+    productImage3: "product_images",
+    productImage4: "product_images",
+    infoImage: "product_infoimages",
+    infoImage2: "product_infoimages",
+    infoImage3: "product_infoimages",
+    infoImage4: "product_infoimages",
+    infoImage5: "product_infoimages",
+    hoverImage: "product_hover",
+  };
+
   // ✅ S3 URL 확인 및 변환 함수
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return "/images/no-image.png"; 
-    if (imagePath.startsWith("http")) return imagePath; 
-    return `http://localhost:8070/product_images/${imagePath}`; 
+  const getImageUrl = (imagePath, fieldName) => {
+    if (!imagePath || imagePath === "null") return "/default-image.png"; // 기본 이미지 처리
+    if (imagePath.startsWith("http")) return `${imagePath}?t=${new Date().getTime()}`; // 캐싱 방지
+
+    // ✅ 필드별 S3 폴더 경로 매핑
+    const folder = folderMapping[fieldName] || "product_images"; // 기본값은 product_images
+    return `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${imagePath}`;
   };
 
   // ✅ 상품 정보 불러오기 (S3 URL 유지)
@@ -148,8 +165,14 @@ const UpdateProduct = () => {
   // ✅ 상품 수정 요청
   const onUpdateSubmit = (e) => {
     e.preventDefault();
+
+    // ✅ 기존 상품 데이터 + 변경된 이미지 URL 반영
+    const updatedProduct = {
+      ...product,
+      ...uploadedImages, // 새로 업로드된 이미지 URL을 병합하여 전송
+    };
     
-    jaxios.put(`/api/admin/product/${productSeq}`, { ...product })
+    jaxios.put(`/api/admin/product/${productSeq}`, updatedProduct)
       .then(() => {
         Swal.fire({ icon: 'success', title: '성공', text: '상품 정보가 수정되었습니다.' })
           .then(() => navigate(`/productView/${productSeq}`));
@@ -173,20 +196,6 @@ const UpdateProduct = () => {
       }
     })
   }
-
-  // ✅ 이미지 업로드 폴더 매핑
-  const folderMapping = {
-    productImage: "product_images",
-    productImage2: "product_images",
-    productImage3: "product_images",
-    productImage4: "product_images",
-    infoImage: "product_infoimages",
-    infoImage2: "product_infoimages",
-    infoImage3: "product_infoimages",
-    infoImage4: "product_infoimages",
-    infoImage5: "product_infoimages",
-    hoverImage: "product_hover",
-  };
 
   return (
     <AdminLayout>
@@ -336,7 +345,7 @@ const UpdateProduct = () => {
               <div className="image-preview">
                 <p>기존 이미지</p>
                 {product.productImage ? (
-                  <img src={getImageUrl(product.productImage)} alt="기존 이미지" width="200" />
+                  <img src={getImageUrl(product.productImage, "product_images")} alt="기존 이미지" width="200" />
                 ) : (
                   <p>없음</p>
                 )}
@@ -346,7 +355,7 @@ const UpdateProduct = () => {
                 <input type="file" name="productImage1" id="productImage1Input" 
                   onChange={(e) => handleFileChange(e, 'productImage')} />
                 {uploadedImages.productImage ? (
-                  <img src={getImageUrl(uploadedImages.productImage)} alt="신규 이미지" width="200" />
+                  <img src={getImageUrl(uploadedImages.productImage, "product_images")} alt="신규 이미지" width="200" />
                 ) : (
                   <p>파일을 선택하세요</p>
                 )}
@@ -359,7 +368,7 @@ const UpdateProduct = () => {
               <div className="image-preview">
                 <p>기존 이미지</p>
                 {product.productImage2 ? (
-                  <img src={getImageUrl(product.productImage2)} alt="기존 이미지" width="200" />
+                  <img src={getImageUrl(product.productImage2, "product_images")} alt="기존 이미지" width="200" />
                 ) : (
                   <p>없음</p>
                 )}
@@ -369,7 +378,7 @@ const UpdateProduct = () => {
                 <input type="file" name="productImage2" id="productImage2Input" 
                   onChange={(e) => handleFileChange(e, 'productImage2')} />
                 {uploadedImages.productImage2 ? (
-                  <img src={getImageUrl(uploadedImages.productImage2)} alt="신규 이미지" width="200" />
+                  <img src={getImageUrl(uploadedImages.productImage2, "product_images")} alt="신규 이미지" width="200" />
                 ) : (
                   <p>파일을 선택하세요</p>
                 )}
@@ -382,7 +391,7 @@ const UpdateProduct = () => {
               <div className="image-preview">
                 <p>기존 이미지</p>
                 {product.productImage3 ? (
-                  <img src={getImageUrl(product.productImage3)} alt="기존 이미지" width="200" />
+                  <img src={getImageUrl(product.productImage3, "product_images")} alt="기존 이미지" width="200" />
                 ) : (
                   <p>없음</p>
                 )}
@@ -392,7 +401,7 @@ const UpdateProduct = () => {
                 <input type="file" name="productImage3" id="productImage3Input" 
                   onChange={(e) => handleFileChange(e, 'productImage3')} />
                 {uploadedImages.productImage3 ? (
-                  <img src={getImageUrl(uploadedImages.productImage3)} alt="신규 이미지" width="200" />
+                  <img src={getImageUrl(uploadedImages.productImage3, "product_images")} alt="신규 이미지" width="200" />
                 ) : (
                   <p>파일을 선택하세요</p>
                 )}
@@ -405,7 +414,7 @@ const UpdateProduct = () => {
               <div className="image-preview">
                 <p>기존 이미지</p>
                 {product.productImage4 ? (
-                  <img src={getImageUrl(product.productImage4)} alt="기존 이미지" width="200" />
+                  <img src={getImageUrl(product.productImage4, "product_images")} alt="기존 이미지" width="200" />
                 ) : (
                   <p>없음</p>
                 )}
@@ -415,7 +424,7 @@ const UpdateProduct = () => {
                 <input type="file" name="productImage4" id="productImage4Input" 
                   onChange={(e) => handleFileChange(e, 'productImage4')} />
                 {uploadedImages.productImage4 ? (
-                  <img src={getImageUrl(uploadedImages.productImage4)} alt="신규 이미지" width="200" />
+                  <img src={getImageUrl(uploadedImages.productImage4, "product_images")} alt="신규 이미지" width="200" />
                 ) : (
                   <p>파일을 선택하세요</p>
                 )}
@@ -430,14 +439,14 @@ const UpdateProduct = () => {
               <div className="image-preview">
                 <p>기존 이미지</p>
                 {product.infoImage ? (
-                  <img src={getImageUrl(product.infoImage)} alt="기존 상세 이미지" width="200" />
+                  <img src={getImageUrl(product.infoImage, "product_infoimages")} alt="기존 상세 이미지" width="200" />
                 ) : <p>없음</p>}
               </div>
               <div className="image-preview">
                 <p>신규 업로드</p>
                 <input type="file" onChange={(e) => handleFileChange(e, 'infoImage')} />
                 {uploadedImages.infoImage ? (
-                  <img src={getImageUrl(uploadedImages.infoImage)} alt="신규 상세 이미지" width="200" />
+                  <img src={getImageUrl(uploadedImages.infoImage, "product_infoimages")} alt="신규 상세 이미지" width="200" />
                 ) : <p>파일을 선택하세요</p>}
               </div>
             </div>
@@ -448,14 +457,14 @@ const UpdateProduct = () => {
               <div className="image-preview">
                 <p>기존 이미지</p>
                 {product.infoImage2 ? (
-                  <img src={getImageUrl(product.infoImage2)} alt="기존 상세 이미지" width="200" />
+                  <img src={getImageUrl(product.infoImage2, "product_infoimages")} alt="기존 상세 이미지" width="200" />
                 ) : <p>없음</p>}
               </div>
               <div className="image-preview">
                 <p>신규 업로드</p>
                 <input type="file" onChange={(e) => handleFileChange(e, 'infoImage2')} />
                 {uploadedImages.infoImage2 ? (
-                  <img src={getImageUrl(uploadedImages.infoImage2)} alt="신규 상세 이미지" width="200" />
+                  <img src={getImageUrl(uploadedImages.infoImage2, "product_infoimages")} alt="신규 상세 이미지" width="200" />
                 ) : <p>파일을 선택하세요</p>}
               </div>
             </div>
@@ -466,14 +475,14 @@ const UpdateProduct = () => {
               <div className="image-preview">
                 <p>기존 이미지</p>
                 {product.infoImage3 ? (
-                  <img src={getImageUrl(product.infoImage3)} alt="기존 상세 이미지" width="200" />
+                  <img src={getImageUrl(product.infoImage3, "product_infoimages")} alt="기존 상세 이미지" width="200" />
                 ) : <p>없음</p>}
               </div>
               <div className="image-preview">
                 <p>신규 업로드</p>
                 <input type="file" onChange={(e) => handleFileChange(e, 'infoImage3')} />
                 {uploadedImages.infoImage3 ? (
-                  <img src={getImageUrl(uploadedImages.infoImage3)} alt="신규 상세 이미지" width="200" />
+                  <img src={getImageUrl(uploadedImages.infoImage3, "product_infoimages")} alt="신규 상세 이미지" width="200" />
                 ) : <p>파일을 선택하세요</p>}
               </div>
             </div>
@@ -484,14 +493,14 @@ const UpdateProduct = () => {
               <div className="image-preview">
                 <p>기존 이미지</p>
                 {product.infoImage4 ? (
-                  <img src={getImageUrl(product.infoImage4)} alt="기존 상세 이미지" width="200" />
+                  <img src={getImageUrl(product.infoImage4, "product_infoimages")} alt="기존 상세 이미지" width="200" />
                 ) : <p>없음</p>}
               </div>
               <div className="image-preview">
                 <p>신규 업로드</p>
                 <input type="file" onChange={(e) => handleFileChange(e, 'infoImage4')} />
                 {uploadedImages.infoImage4 ? (
-                  <img src={getImageUrl(uploadedImages.infoImage4)} alt="신규 상세 이미지" width="200" />
+                  <img src={getImageUrl(uploadedImages.infoImage4, "product_infoimages")} alt="신규 상세 이미지" width="200" />
                 ) : <p>파일을 선택하세요</p>}
               </div>
             </div>
@@ -502,14 +511,14 @@ const UpdateProduct = () => {
               <div className="image-preview">
                 <p>기존 이미지</p>
                 {product.infoImage5 ? (
-                  <img src={getImageUrl(product.infoImage5)} alt="기존 상세 이미지" width="200" />
+                  <img src={getImageUrl(product.infoImage5, "product_infoimages")} alt="기존 상세 이미지" width="200" />
                 ) : <p>없음</p>}
               </div>
               <div className="image-preview">
                 <p>신규 업로드</p>
                 <input type="file" onChange={(e) => handleFileChange(e, 'infoImage5')} />
                 {uploadedImages.infoImage5 ? (
-                  <img src={getImageUrl(uploadedImages.infoImage5)} alt="신규 상세 이미지" width="200" />
+                  <img src={getImageUrl(uploadedImages.infoImage5, "product_infoimages")} alt="신규 상세 이미지" width="200" />
                 ) : <p>파일을 선택하세요</p>}
               </div>
             </div>
@@ -520,14 +529,14 @@ const UpdateProduct = () => {
               <div className="image-preview">
                 <p>기존 이미지</p>
                 {product.hoverImage ? (
-                  <img src={getImageUrl(product.hoverImage)} alt="기존 Hover 이미지" width="200" />
+                  <img src={getImageUrl(product.hoverImage, "product_hover")} alt="기존 Hover 이미지" width="200" />
                 ) : <p>없음</p>}
               </div>
               <div className="image-preview">
                 <p>신규 업로드</p>
                 <input type="file" onChange={(e) => handleFileChange(e, 'hoverImage')} />
                 {uploadedImages.hoverImage ? (
-                  <img src={getImageUrl(uploadedImages.hoverImage)} alt="신규 Hover 이미지" width="200" />
+                  <img src={getImageUrl(uploadedImages.hoverImage, "product_hover")} alt="신규 Hover 이미지" width="200" />
                 ) : <p>파일을 선택하세요</p>}
               </div>
             </div>
