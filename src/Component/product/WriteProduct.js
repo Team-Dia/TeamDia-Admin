@@ -37,8 +37,7 @@ const WriteProduct = () => {
 
     // ✅ 필드별 S3 폴더 경로 매핑
     const folder = folderMapping[fieldName] || "product_images"; // 기본값은 product_images
-    const cleanedImagePath = imagePath.replace(/^\/static\/.*\//, ''); // ✅ 중복된 경로 제거
-    return `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${cleanedImagePath}`;
+    return `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${imagePath.replace(/^\/static\/.*\//, '')}`;
   };
 
   const [product, setProduct] = useState({
@@ -129,18 +128,6 @@ const WriteProduct = () => {
     const file = event.target.files[0];
     if (!file) return;
     const folder = folderMapping[fieldName] || "product_images"; // 폴더 매핑
-    // const folderMapping = {
-    //     productImage: "product_images",
-    //     productImage2: "product_images",
-    //     productImage3: "product_images",
-    //     productImage4: "product_images",
-    //     infoImage: "product_infoimages",
-    //     infoImage2: "product_infoimages",
-    //     infoImage3: "product_infoimages",
-    //     infoImage4: "product_infoimages",
-    //     infoImage5: "product_infoimages",
-    //     hoverImage: "product_hover",
-    // };
 
     const formData = new FormData();
     formData.append("file", file);
@@ -158,10 +145,14 @@ const WriteProduct = () => {
 
         let fileUrl;
 
-        if (response.data && typeof response.data === "object" && response.data.imageUrl) {
-          fileUrl = response.data.imageUrl; // JSON 응답의 경우
-        } else if (typeof response.data === "string") {
-            fileUrl = `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${response.data}`; // 문자열 응답의 경우
+        if (response.data && typeof response.data === "string") {
+          // ✅ 이미 URL 형식이면 그대로 사용
+          if (response.data.startsWith("http")) {
+              fileUrl = response.data;
+          } else {
+              // ✅ URL이 아니라 파일명만 반환된 경우 올바른 S3 경로로 변환
+              fileUrl = `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${response.data}`;
+          }
         } else {
             console.error("🚨 서버 응답이 예상과 다름:", response.data);
             throw new Error("서버 응답이 예상과 다릅니다.");
