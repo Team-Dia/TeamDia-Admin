@@ -23,7 +23,8 @@ const WriteProduct = () => {
 
     // ✅ 필드별 S3 폴더 경로 매핑
     const folder = folderMapping[fieldName] || "product_images"; // 기본값은 product_images
-    return `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${imagePath}`;
+    const cleanedImagePath = imagePath.replace(/^\/static\/.*\//, ''); // ✅ 중복된 경로 제거
+    return `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${cleanedImagePath}`;
   };
 
   const [product, setProduct] = useState({
@@ -113,7 +114,7 @@ const WriteProduct = () => {
   const handleFileChange = async (event, fieldName) => {
     const file = event.target.files[0];
     if (!file) return;
-
+    const folder = folderMapping[fieldName] || "product_images"; // 폴더 매핑
     const folderMapping = {
         productImage: "product_images",
         productImage2: "product_images",
@@ -132,32 +133,22 @@ const WriteProduct = () => {
 
     try {
         console.log("📡 파일 업로드 요청 시작:", `/api/admin/product/upload/${folderMapping[fieldName]}`);
-        const response = await jaxios.post(`/api/admin/product/upload/${folderMapping[fieldName]}`, formData, {
+
+        const response = await jaxios.post(`/api/admin/product/upload/${folder}`, formData, {
           headers: { 
             "Content-Type": "multipart/form-data",
          },
         });
-        console.log("✅ 상품 이미지 URL 확인:", getImageUrl(product.productImage, "productImage"));
-        console.log("✅ 상품 이미지 URL 확인:", getImageUrl(product.infoImage, "infoImage"));
-        console.log("📡 서버 응답 전체:", response); // ✅ 서버 응답 전체 출력
+        
+        console.log("📡 서버 응답 전체:", response.data); // ✅ 서버 응답 전체 출력
+
         let fileUrl;
 
-
-        // ✅ 응답 데이터가 존재하는지 확인
-        if (!response || !response.data) {
-          throw new Error("🚨 서버 응답이 없습니다.");
-        }
-
-        // ✅ 서버 응답이 JSON 객체({ imageUrl: "URL" })일 경우
         if (response.data && typeof response.data === "object" && response.data.imageUrl) {
-            fileUrl = response.data.imageUrl;
-        }
-        // ✅ 서버 응답이 문자열(S3 URL 또는 로컬 경로)일 경우
-        else if (typeof response.data === "string") {
-            fileUrl = `/static/${folderMapping[fieldName]}/${response.data}`;
-        }
-        // ✅ 서버 응답이 예상과 다를 경우 오류 발생 (디버깅)
-        else {
+          fileUrl = response.data.imageUrl; // JSON 응답의 경우
+        } else if (typeof response.data === "string") {
+            fileUrl = `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${response.data}`; // 문자열 응답의 경우
+        } else {
             console.error("🚨 서버 응답이 예상과 다름:", response.data);
             throw new Error("서버 응답이 예상과 다릅니다.");
         }
