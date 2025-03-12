@@ -16,6 +16,20 @@ const WriteProduct = () => {
     { id: 4, name: '팔찌' },
   ]
 
+  // ✅ 폴더 매핑
+  const folderMapping = {
+    productImage: "product_images",
+    productImage2: "product_images",
+    productImage3: "product_images",
+    productImage4: "product_images",
+    infoImage: "product_infoimages",
+    infoImage2: "product_infoimages",
+    infoImage3: "product_infoimages",
+    infoImage4: "product_infoimages",
+    infoImage5: "product_infoimages",
+    hoverImage: "product_hover",
+  };
+
   // ✅ 로컬과 S3 자동 변환 함수
   const getImageUrl = (imagePath, fieldName) => {
     if (!imagePath || imagePath === "null") return "/default-image.png"; // 기본 이미지 처리
@@ -115,18 +129,18 @@ const WriteProduct = () => {
     const file = event.target.files[0];
     if (!file) return;
     const folder = folderMapping[fieldName] || "product_images"; // 폴더 매핑
-    const folderMapping = {
-        productImage: "product_images",
-        productImage2: "product_images",
-        productImage3: "product_images",
-        productImage4: "product_images",
-        infoImage: "product_infoimages",
-        infoImage2: "product_infoimages",
-        infoImage3: "product_infoimages",
-        infoImage4: "product_infoimages",
-        infoImage5: "product_infoimages",
-        hoverImage: "product_hover",
-    };
+    // const folderMapping = {
+    //     productImage: "product_images",
+    //     productImage2: "product_images",
+    //     productImage3: "product_images",
+    //     productImage4: "product_images",
+    //     infoImage: "product_infoimages",
+    //     infoImage2: "product_infoimages",
+    //     infoImage3: "product_infoimages",
+    //     infoImage4: "product_infoimages",
+    //     infoImage5: "product_infoimages",
+    //     hoverImage: "product_hover",
+    // };
 
     const formData = new FormData();
     formData.append("file", file);
@@ -230,19 +244,6 @@ const WriteProduct = () => {
       });
   };
 
-  // ✅ 폴더 매핑
-  const folderMapping = {
-    productImage: "product_images",
-    productImage2: "product_images",
-    productImage3: "product_images",
-    productImage4: "product_images",
-    infoImage: "product_infoimages",
-    infoImage2: "product_infoimages",
-    infoImage3: "product_infoimages",
-    infoImage4: "product_infoimages",
-    infoImage5: "product_infoimages",
-    hoverImage: "product_hover",
-  };
 
   return (
     <AdminLayout>
@@ -387,11 +388,11 @@ const WriteProduct = () => {
            {/* ✅ 이미지 업로드 UI (파일 선택만 하면 자동 업로드) */}
            {Object.entries(folderMapping).map(([field, folder], index) => (
             <div className="form-group" key={field}>
-              <label>{folder.includes('product_images') ? `상품 이미지 ${index + 1}` : folder.includes('product_infoimages') ? `상세 정보 이미지 ${index - 3}` : 'Hover 이미지'}</label>
+              <label>{folder.includes('product_images') ? `상품 이미지 ${index + 1}` : folder.includes('product_infoimages') ? `상세 정보 이미지 ${index - Object.keys(folderMapping).indexOf("infoImage") + 1}` : 'Hover 이미지'}</label>
               <input type="file" onChange={(e) => handleFileChange(e, field)} />
               {product[field] && <img src={getImageUrl(product[field], field)} alt={`미리보기 ${index + 1}`} width="200" />}
             </div>
-          ))}
+            ))}
 
           <button type="submit" className="gold-gradient-button">등록</button>
           <button type="button" className="gold-gradient-button" onClick={() => navigate("/productList")}>뒤로</button>
