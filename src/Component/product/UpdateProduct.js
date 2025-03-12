@@ -64,19 +64,14 @@ const UpdateProduct = () => {
     hoverImage: "product_hover",
   };
 
-  // ✅ 이미지 URL 변환 (S3 / 로컬 자동 구분)
+  // ✅ 로컬과 S3 자동 변환 함수
   const getImageUrl = (imagePath, fieldName) => {
     if (!imagePath || imagePath === "null") return "/default-image.png"; // 기본 이미지 처리
-    if (imagePath.startsWith("http")) return imagePath; // S3 URL이면 그대로 반환
+    if (imagePath.startsWith("http")) return imagePath; // 이미 S3 URL이면 그대로 반환
 
     // ✅ 필드별 S3 폴더 경로 매핑
     const folder = folderMapping[fieldName] || "product_images"; // 기본값은 product_images
-
-    // ✅ URL이 중복되지 않도록 변환
-    const s3Url = `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${imagePath.replace(/^\/static\/.*\//, '')}`;
-
-    console.log("📡 변환된 이미지 URL:", s3Url); // ✅ 디버깅용 로그 추가
-    return s3Url;
+    return `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${imagePath.replace(/^\/static\/.*\//, '')}`;
   };
 
   // ✅ 상품 정보 불러오기 (S3 URL 유지)
@@ -106,54 +101,40 @@ const UpdateProduct = () => {
       });
   }, [productSeq]);
 
+  // ✅ 파일 선택 시 자동 업로드
   const handleFileChange = async (event, fieldName) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    const folderMapping = {
-        productImage: "product_images",
-        productImage2: "product_images",
-        productImage3: "product_images",
-        productImage4: "product_images",
-        infoImage: "product_infoimages",
-        infoImage2: "product_infoimages",
-        infoImage3: "product_infoimages",
-        infoImage4: "product_infoimages",
-        infoImage5: "product_infoimages",
-        hoverImage: "product_hover",
-    };
+    console.log(`📝 선택한 파일: ${file.name}, 크기: ${file.size} bytes, MIME 타입: ${file.type}`);
+    
+    const folder = folderMapping[fieldName] || "product_images"; // 폴더 매핑
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
         console.log("📡 파일 업로드 요청 시작:", `/api/admin/product/upload/${folderMapping[fieldName]}`);
-        const response = await jaxios.post(`/api/admin/product/upload/${folderMapping[fieldName]}`, formData, {
+
+        const response = await jaxios.post(`/api/admin/product/upload/${folder}`, formData, {
           headers: { 
             "Content-Type": "multipart/form-data",
          },
         });
-        console.log("✅ 상품 이미지 URL 확인:", getImageUrl(product.productImage, "productImage"));
-        console.log("✅ 상품 이미지 URL 확인:", getImageUrl(product.infoImage, "infoImage"));
-        console.log("📡 서버 응답 전체:", response); // ✅ 서버 응답 전체 출력
+        
+        console.log("📡 서버 응답 전체:", response.data); // ✅ 서버 응답 전체 출력
+
         let fileUrl;
 
-
-        // ✅ 응답 데이터가 존재하는지 확인
-        if (!response || !response.data) {
-          throw new Error("🚨 서버 응답이 없습니다.");
-        }
-
-        // ✅ 서버 응답이 JSON 객체({ imageUrl: "URL" })일 경우
-        if (response.data && typeof response.data === "object" && response.data.imageUrl) {
-            fileUrl = response.data.imageUrl;
-        }
-        // ✅ 서버 응답이 문자열(S3 URL 또는 로컬 경로)일 경우
-        else if (typeof response.data === "string") {
-            fileUrl = `/static/${folderMapping[fieldName]}/${response.data}`;
-        }
-        // ✅ 서버 응답이 예상과 다를 경우 오류 발생 (디버깅)
-        else {
+        if (response.data && typeof response.data === "string") {
+          // ✅ 이미 URL 형식이면 그대로 사용
+          if (response.data.startsWith("http")) {
+              fileUrl = response.data;
+          } else {
+              // ✅ URL이 아니라 파일명만 반환된 경우 올바른 S3 경로로 변환
+              fileUrl = `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${response.data}`;
+          }
+        } else {
             console.error("🚨 서버 응답이 예상과 다름:", response.data);
             throw new Error("서버 응답이 예상과 다릅니다.");
         }
