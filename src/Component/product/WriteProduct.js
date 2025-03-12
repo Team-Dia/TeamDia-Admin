@@ -127,6 +127,9 @@ const WriteProduct = () => {
   const handleFileChange = async (event, fieldName) => {
     const file = event.target.files[0];
     if (!file) return;
+
+    console.log(`📝 선택한 파일: ${file.name}, 크기: ${file.size} bytes, MIME 타입: ${file.type}`);
+    
     const folder = folderMapping[fieldName] || "product_images"; // 폴더 매핑
 
     const formData = new FormData();
