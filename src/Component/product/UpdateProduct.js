@@ -146,10 +146,10 @@ const UpdateProduct = () => {
             [fieldName]: fileUrl,
         }));
 
-        setProduct((prev) => ({
-            ...prev,
-            [fieldName]: fileUrl,
-        }));
+        // setProduct((prev) => ({
+        //     ...prev,
+        //     [fieldName]: fileUrl,
+        // }));
 
     } catch (error) {
         console.error("파일 업로드 실패", error);
