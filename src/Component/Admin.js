@@ -87,8 +87,8 @@ const Admin = () => {
     <div className="admin-login-page">
       <form className="AdminForm" onSubmit={handleSubmit}>
         <div className="login-header">
-          <h2>치원Admin님이 Login 하십니다</h2>
-          <p className="login-subtitle">~~Welcome to Admin Dashboard~~</p>
+          <h2>Admin Login</h2>
+          <p className="login-subtitle">-- Admin Dashboard --</p>
         </div>
         <div className="login-body">
           <div className="field">
