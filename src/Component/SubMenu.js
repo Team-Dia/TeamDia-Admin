@@ -8,7 +8,7 @@ const SubMenu = () => {
   function onLogout() {
     document.cookie =
       'adminUser=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-    window.location.href = 'http://localhost:3000/'
+    window.location.href = 'http://43.201.136.44:3001/admin'
   }
 
   return (
