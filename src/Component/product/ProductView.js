@@ -17,6 +17,21 @@ const ProductView = () => {
   const { productSeq } = useParams()
   const navigate = useNavigate()
 
+  const getImageUrl = (imagePath, type) => {
+    if (!imagePath) return '/images/no-image.png'; // 기본 이미지
+  
+    if (imagePath.startsWith('http')) return imagePath; // ✅ 이미 S3 URL이면 그대로 사용
+  
+    const folderMapping = {
+      productImage: 'product_images',
+      infoImage: 'product_infoimages',
+      hoverImage: 'product_hover',
+    };
+  
+    const folder = folderMapping[type] || 'product_images'; // 기본 폴더 매핑
+    return `https://teamdia-file.s3.ap-northeast-2.amazonaws.com/${folder}/${imagePath}`;
+  };
+
   useEffect(() => {
     setLoading(true)
     jaxios
@@ -127,21 +142,19 @@ const ProductView = () => {
               }
 
               return validImages.map((image, index) => {
-                let baseUrl
-                let subPath = ''
+                const imageUrl = getImageUrl(image.filename, image.type); // ✅ 수정됨
 
-                if (image.type === 'productImage') {
-                  baseUrl = PRODUCT_IMAGE_BASE_URL // productImage 인 경우 해당 Base URL 사용
-                } else if (image.type === 'infoImage') {
-                  baseUrl = INFO_IMAGE_BASE_URL // infoImage 인 경우 해당 Base URL 사용
-                } else if (image.type === 'hoverImage') {
-                  baseUrl = HOVER_IMAGE_BASE_URL // hoverImage 인 경우 해당 Base URL 사용
-                } else {
-                  baseUrl = PRODUCT_IMAGE_BASE_URL // 기본적으로 productImage Base URL 사용 (혹시 모를 오류 대비)
-                  subPath = 'product_images/' // 기본 subPath (혹시 모를 오류 대비)
-                }
-
-                const imageUrl = new URL(image.filename, baseUrl).href // URL 생성자 사용하여 URL 조합 (subPath 제거)
+                // if (image.type === 'productImage') {
+                //   baseUrl = PRODUCT_IMAGE_BASE_URL // productImage 인 경우 해당 Base URL 사용
+                // } else if (image.type === 'infoImage') {
+                //   baseUrl = INFO_IMAGE_BASE_URL // infoImage 인 경우 해당 Base URL 사용
+                // } else if (image.type === 'hoverImage') {
+                //   baseUrl = HOVER_IMAGE_BASE_URL // hoverImage 인 경우 해당 Base URL 사용
+                // } else {
+                //   baseUrl = PRODUCT_IMAGE_BASE_URL // 기본적으로 productImage Base URL 사용 (혹시 모를 오류 대비)
+                //   subPath = 'product_images/' // 기본 subPath (혹시 모를 오류 대비)
+                // }
+                // const imageUrl = new URL(image.filename, baseUrl).href // URL 생성자 사용하여 URL 조합 (subPath 제거)
 
                 return (
                   image.filename && (
